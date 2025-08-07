@@ -1,0 +1,576 @@
+{
+  "name": "Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a proactive personal assistant that helps users manage their calendar and tasks using connected tools via MCP.\n\nYou have access to the following tools and must decide when and how to use them based on user queries:\n\n1. **Create Google Calendar Event**\n   - Use when the user wants to schedule a new event.\n   - Required inputs: Title, Date & Time, Description, Attendees (if any).\n\n2. **Check Google Calendar Availability**\n   - Use to find free or busy time slots in a specific calendar.\n\n3. **Get Google Calendar Events**\n   - Use to retrieve upcoming or past events, optionally filtered by time or keyword.\n\n4. **Update Google Calendar Event**\n   - Use when the user wants to modify an existing event (requires Event ID).\n\n5. **Delete Google Calendar Event**\n   - Use when the user wants to cancel or remove a scheduled event (requires Event ID).\n\n6. **Create Google Task**\n   - Use when the user wants to set a new task.\n   - Required inputs: Task title, Due date, Notes (if any).\n\n7. **Get Google Tasks**\n   - Use to retrieve a list of tasks, optionally filtered by status or time.\n\n8. **Update Google Task**\n   - Use to mark a task as completed or to update notes (requires Task ID).\n\nImportant behavior guidelines:\n- Always maintain a helpful, professional tone.\n- Infer missing information if obvious; otherwise, ask clarifying questions.\n- Prefer structured responses and summarize actions you're taking.\n- Use the memory buffer to remember the user’s preferences and context across turns.\n- Whenever event/task ID is required for a tool, you can call get google calendar or google tasks and retrieve the event Id/ task Id. Refrain from asking the ID from user.\n- Current timestamp - {{ $now }}\n\nExamples:\n- “Schedule a meeting with Alex next Thursday at 2 PM” → Use **Create Google Calendar Event**\n- “What meetings do I have tomorrow?” → Use **Get Google Calendar Events**\n- “Add a task to follow up with the design team by Monday” → Use **Create Google Task**\n- “Mark the follow-up task as done” → Use **Update Google Task**\n\nYour goal is to manage the user’s time effectively. Only use tools when necessary and only one at a time unless required."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "129dd221-2b9c-486e-9404-45fac13744da",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        208
+      ],
+      "id": "4e524aac-51e7-4bef-b49f-140fc6422578",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bFhM1Ps4YfzVOtHS",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=id_{{ $('Telegram Trigger').first().json.message.from.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        384,
+        208
+      ],
+      "id": "aad84364-d4d2-4800-bd19-79e5e85a08e4",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://n8n.srv879786.hstgr.cloud/mcp/60b53056-34cc-45e9-8379-8e55cc23399f"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        208
+      ],
+      "id": "ef80a6c8-5ef2-48ac-b211-dcbd9c12b6b8",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        -176
+      ],
+      "id": "4f37da3f-6972-4817-b31e-16807d58b717",
+      "name": "Chat Memory Manager"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -176
+      ],
+      "id": "a8a25c0a-75c9-4603-b937-4be1033d95bb",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        48,
+        208
+      ],
+      "id": "b5977c5b-da45-4b76-a488-16de2e0f9475",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "PDDdhlPnkaERGZiv",
+          "name": "OpenAi Prabu"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3d323bb7-5c25-4374-b0b6-d58117e8acbe",
+      "name": "Telegram Trigger",
+      "webhookId": "c2681b92-35e5-4bc1-8900-7aa2bfe58ba1",
+      "credentials": {
+        "telegramApi": {
+          "id": "AiTOBcgHT1qrOiEu",
+          "name": "ForgeTele bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "6526288605",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "79b12174-4e1a-412a-9105-44957749e576",
+      "name": "Send a text message",
+      "webhookId": "86294404-c674-4e79-adde-221c11b3c2b9",
+      "credentials": {
+        "telegramApi": {
+          "id": "AiTOBcgHT1qrOiEu",
+          "name": "ForgeTele bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "c_dcce1bfb3b279647de56baab7861f27f7d96fb324cb432544ceeb78d29bbf0eb@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Sample dummy"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        800,
+        16
+      ],
+      "id": "2ccedafc-be5c-4fab-90ac-e6b84bfbeead",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "qMjbanmMUOzql00Y",
+          "name": "Contact@Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "c_dcce1bfb3b279647de56baab7861f27f7d96fb324cb432544ceeb78d29bbf0eb@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Sample dummy"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start_Time', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End_Time', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        960,
+        16
+      ],
+      "id": "24a7546c-9145-4569-9444-25158bcba3cc",
+      "name": "Get availability in a calendar in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "qMjbanmMUOzql00Y",
+          "name": "Contact@Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "c_dcce1bfb3b279647de56baab7861f27f7d96fb324cb432544ceeb78d29bbf0eb@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Sample dummy"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        16
+      ],
+      "id": "824de7e0-077b-4279-bb16-84b25d4af45a",
+      "name": "Get many events in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "qMjbanmMUOzql00Y",
+          "name": "Contact@Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "c_dcce1bfb3b279647de56baab7861f27f7d96fb324cb432544ceeb78d29bbf0eb@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Sample dummy"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        16
+      ],
+      "id": "239ecf88-85b9-4140-8f24-93055950982b",
+      "name": "Delete an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "qMjbanmMUOzql00Y",
+          "name": "Contact@Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "c_dcce1bfb3b279647de56baab7861f27f7d96fb324cb432544ceeb78d29bbf0eb@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Sample dummy"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "updateFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1440,
+        16
+      ],
+      "id": "0a8ce6aa-4ec5-4892-9fe9-3d50bff6bbcd",
+      "name": "Update an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "qMjbanmMUOzql00Y",
+          "name": "Contact@Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "task": "cW1Wc3UwTHdRcUtHdFd3aw",
+        "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Title', ``, 'string') }}",
+        "additionalFields": {
+          "dueDate": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Due_Date', ``, 'string') }}",
+          "notes": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Notes', ``, 'string') }}",
+          "status": "needsAction"
+        }
+      },
+      "type": "n8n-nodes-base.googleTasksTool",
+      "typeVersion": 1,
+      "position": [
+        960,
+        208
+      ],
+      "id": "b2785c15-945a-4caf-acd1-23d3c25fc7d5",
+      "name": "Create a task in Google Tasks",
+      "credentials": {
+        "googleTasksOAuth2Api": {
+          "id": "GMkJFw4tg9pHyNAL",
+          "name": "Google Tasks contact account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "task": "cW1Wc3UwTHdRcUtHdFd3aw",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleTasksTool",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        208
+      ],
+      "id": "b42d5ace-3fb2-4e6e-b524-76d521bd6cb3",
+      "name": "Get many tasks in Google Tasks",
+      "credentials": {
+        "googleTasksOAuth2Api": {
+          "id": "GMkJFw4tg9pHyNAL",
+          "name": "Google Tasks contact account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "task": "cW1Wc3UwTHdRcUtHdFd3aw",
+        "taskId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Task_ID', ``, 'string') }}",
+        "updateFields": {
+          "notes": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Notes', ``, 'string') }}",
+          "status": "completed"
+        }
+      },
+      "type": "n8n-nodes-base.googleTasksTool",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        208
+      ],
+      "id": "370d5fcc-84fa-482e-90fd-868fb4bae2ec",
+      "name": "Update a task in Google Tasks",
+      "credentials": {
+        "googleTasksOAuth2Api": {
+          "id": "GMkJFw4tg9pHyNAL",
+          "name": "Google Tasks contact account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "c8ddc3e9-af6b-45cd-8644-f1ecc07742cc"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        -208
+      ],
+      "id": "19c1452a-a62a-429a-ae88-ed2e1a1ceabd",
+      "name": "MCP Server Trigger",
+      "webhookId": "c8ddc3e9-af6b-45cd-8644-f1ecc07742cc"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Chat Memory Manager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Chat Memory Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get availability in a calendar in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many events in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a task in Google Tasks": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many tasks in Google Tasks": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a task in Google Tasks": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "86b8c50c-7954-43aa-afe0-3a7acdbea3f9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "06109140a62dea529b2b0785c44ac542f843e14b83e6c0e2f1925a4b1d6ba673"
+  },
+  "id": "gdWYHunnbprPjrZW",
+  "tags": []
+}
